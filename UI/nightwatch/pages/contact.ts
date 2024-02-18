@@ -1,5 +1,9 @@
 // nightwatch/pages/contact.ts
-import { PageObjectModel, EnhancedPageObject } from "nightwatch";
+import {
+  PageObjectModel,
+  EnhancedPageObject,
+  JSON_WEB_OBJECT,
+} from "nightwatch";
 import { subjectHeadingOptions } from "../../data/testData";
 import path from "path";
 
@@ -17,9 +21,17 @@ const contactCommands = {
   assertFormElementVisibility(this: Contact, elementName: string) {
     return this.section.contactUsForm.expect.element(elementName).to.be.visible;
   },
-  // Asserts presence of an element in the form
-  assertFormElementPresence(this: Contact, elementName: string) {
-    return this.section.contactUsForm.expect.element(elementName).to.be.present;
+  // verifies presence of an element in the form
+  assertFormElementPresence(
+    this: Contact,
+    elementName: string,
+    message?: string
+  ) {
+    //This allows tests to continue to rest of assertions even if 1 failed
+    return this.section.contactUsForm.verify.elementPresent(
+      elementName,
+      message
+    );
   },
   // Returns Form
   getForm(this: Contact) {
@@ -96,11 +108,35 @@ const contactCommands = {
   },
   // Assert success message
   assertSuccess(this: Contact) {
-    return this.assertFormElementVisibility("@successMessage");
+    return this.assertFormElementPresence("@successMessage");
   },
   // Assert failure message
-  assertFailure(this: Contact) {
-    return this.assertFormElementVisibility("@failureMessage");
+  assertFailure(this: Contact, message?: string) {
+    return this.assertFormElementPresence("@failureMessage", message);
+  },
+  // get error messages
+  getErrors(this: Contact) {
+    return this.section.contactUsForm.findElements("@errorMessages");
+  },
+  async assertNumberOfErrors(
+    this: Contact,
+    errorsToLookFor: string[],
+    errorElementsObject: JSON_WEB_OBJECT[]
+  ) {
+    const errorsBeforeChange = errorsToLookFor;
+    //the JSON WEB OBJECT passed contains a getId function for convenience
+    for (let i = 0; i < errorElementsObject.length; i++) {
+      const id = errorElementsObject[i].getId();
+      const text = await browser.elementIdText(id);
+      errorsToLookFor = errorsToLookFor.filter((el) => !text.includes(el));
+    }
+    return await this.assert.equal(
+      errorsToLookFor.length,
+      0,
+      `Errors related to ${errorsBeforeChange.join(
+        " and "
+      )} should be displayed`
+    );
   },
 };
 
@@ -144,6 +180,9 @@ const contact = {
         },
         failureMessage: {
           selector: ".alert-danger",
+        },
+        errorMessages: {
+          selector: ".alert > ol > li",
         },
       },
     },

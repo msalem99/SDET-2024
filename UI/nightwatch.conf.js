@@ -37,6 +37,8 @@ module.exports = {
     enabled: true,
   },
 
+  skip_testcases_on_fail: false,
+
   test_settings: {
     default: {
       disable_error_log: false,
