@@ -336,7 +336,7 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to missing message show
+    // Check that errors related to missing message and email show
     var errorsToLookFor = ["message", "email"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
@@ -358,7 +358,7 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to missing message show
+    // Check that errors related to missing message and subject heading show
     var errorsToLookFor = ["message", "subject"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
