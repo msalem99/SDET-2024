@@ -1,0 +1,16 @@
+{
+  "reporters": [
+    "default",
+    [
+      "jest-html-reporters",
+      {
+        "pageTitle": "Auth API Test Report",
+        "darkTheme": true,
+        "publicPath": "./html-report",
+        "expand": true,
+        "inlineSource": true
+      }
+    ]
+  ],
+  "verbose": true
+}
