@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "testContactPage": "npx nightwatch ./test/contact.ts",
+    "testSearchPage": "npx nightwatch ./test/search.ts",
     "test": "npx nightwatch ./test",
     "testHeadless": "npx nightwatch ./test --headless"
   },
