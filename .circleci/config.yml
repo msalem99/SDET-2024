@@ -13,7 +13,8 @@ jobs:
           chrome-version: "118.0.5993.88"
       - run:
           name: Install Dependencies
-          command: npm install
+          working_directory: SDET-2024/UI
+          command: ls && npm install
 
 workflows:
   test:
