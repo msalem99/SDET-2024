@@ -12,4 +12,7 @@ jobs:
           chrome-version: "118.0.5993.88"
       - run:
           command: google-chrome --version
-workflows: null
+workflows:
+  test:
+    jobs:
+      - UI
