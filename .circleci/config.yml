@@ -11,14 +11,13 @@ jobs:
       - browser-tools/install-browser-tools:
           chrome-version: "118.0.5993.88"
       - run:
-          command: ls
-      - run:
-          working_directory: UI
-          command: ls
-      - run:
           name: Install Dependencies
           working_directory: UI
-          command: ls && npm install
+          command: npm install
+      - run:
+          name: Run tests
+          working_directory: UI
+          command: npm run testHeadless
 
 workflows:
   test:
