@@ -1,0 +1,14 @@
+version: "2.1"
+orbs:
+  node: circleci/node@4.7
+  browser-tools: circleci/browser-tools@1.4.6
+
+jobs:
+  UI:
+    docker:
+      - image: cimg/node:20.4.0-browsers
+    steps:
+      - browser-tools/install-chrome:
+          chrome-version: "118.0.5993.88"
+      - run:
+          command: google-chrome --version
