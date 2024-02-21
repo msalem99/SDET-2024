@@ -18,8 +18,28 @@ jobs:
           name: Run tests
           working_directory: UI
           command: npm run testHeadless
+      - store_artifacts:
+          path: /home/circleci/project/UI_generated_report/nightwatch-html-report/index.html
+          destination: html_reports
+  API:
+    docker:
+      - image: cimg/node:21.6.1
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          working_directory: API
+          command: npm install
+      - run:
+          name: Run tests
+          working_directory: API
+          command: npm run test
+      - store_artifacts:
+          path: /home/circleci/project/API_generated_report/jest_html_reporters.html
+          destination: html_reports
 
 workflows:
   test:
     jobs:
       - UI
+      - API
