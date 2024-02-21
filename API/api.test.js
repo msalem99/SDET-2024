@@ -1,5 +1,4 @@
 const { server } = require("mock-user-auth/bin/www.js");
-const request = require("supertest");
 const fs = require("fs");
 
 const {
@@ -44,7 +43,7 @@ describe("Auth API tests", function () {
   });
 
   beforeAll((done) => {
-    // This is to ensure that the file used as a DB is emptied after the tests run
+    // This is to ensure that the file used as a DB is emptied before the tests run
     // This is equivalent to initializing a test database
     fs.writeFile(filePath, JSON.stringify({ users: [] }), (err) => {
       if (err) {
@@ -329,5 +328,15 @@ describe("Auth API tests", function () {
       loginModifiedDefaultUser
     );
     expect(secondLoginResponse.statusCode).toEqual(401);
+  });
+
+  it("Fails to delete all users using non admin creds", async function () {
+    const deleteAllUsersResponse = await deleteAllUsers(server, "not admin");
+
+    expect(deleteAllUsersResponse.statusCode).toEqual(403);
+    expect(deleteAllUsersResponse.body).toHaveProperty(
+      "message",
+      "Unauthorized access"
+    );
   });
 });
