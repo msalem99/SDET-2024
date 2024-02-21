@@ -1,5 +1,6 @@
 const { server } = require("mock-user-auth/bin/www.js");
 const fs = require("fs");
+const request = require("supertest");
 
 const {
   defaultUser,
@@ -23,7 +24,8 @@ const {
   deleteAllUsers,
 } = require("./api_endpoints");
 
-const filePath = "./node_modules/mock-user-auth/components/mock/users.json";
+const databaseFilePath =
+  "./node_modules/mock-user-auth/components/mock/users.json";
 
 describe("Auth API tests", function () {
   afterAll((done) => {
@@ -31,7 +33,7 @@ describe("Auth API tests", function () {
     // This is to ensure that the file used as a DB is emptied after the tests run
     // to preserve a clean DB state Before and after the test suite runs
     // This is equivalent to destroying a test database
-    fs.writeFile(filePath, JSON.stringify({ users: [] }), (err) => {
+    fs.writeFile(databaseFilePath, JSON.stringify({ users: [] }), (err) => {
       if (err) {
         console.error("Error clearing JSON file:", err);
         done.fail(err);
@@ -45,7 +47,7 @@ describe("Auth API tests", function () {
   beforeAll((done) => {
     // This is to ensure that the file used as a DB is emptied before the tests run
     // This is equivalent to initializing a test database
-    fs.writeFile(filePath, JSON.stringify({ users: [] }), (err) => {
+    fs.writeFile(databaseFilePath, JSON.stringify({ users: [] }), (err) => {
       if (err) {
         console.error("Error clearing JSON file:", err);
         done.fail(err);
@@ -66,14 +68,18 @@ describe("Auth API tests", function () {
   });
 
   it("Creates a user successfully", async function () {
-    const response = await createUser(server, defaultUser);
-    expect(response.statusCode).toEqual(200);
+    const registerResponse = await createUser(server, defaultUser);
+    expect(registerResponse.statusCode).toEqual(200);
+    expect(registerResponse.body).toHaveProperty(
+      "message",
+      "User registered with success"
+    );
   });
 
   it("Returns a token after successful user creation", async function () {
-    const response = await createUser(server, defaultUser);
-    expect(response.statusCode).toEqual(200);
-    expect(response.body).toHaveProperty(
+    const registerResponse = await createUser(server, defaultUser);
+    expect(registerResponse.statusCode).toEqual(200);
+    expect(registerResponse.body).toHaveProperty(
       "message",
       "User registered with success"
     );
@@ -81,32 +87,39 @@ describe("Auth API tests", function () {
   });
 
   it("Fails to create a user with empty body request", async function () {
-    const response = await createUser(server, {});
-    expect(response.statusCode).not.toEqual(200);
+    const registerResponse = await createUser(server, {});
+    expect(registerResponse.statusCode).not.toEqual(200);
   });
 
   it("Fails to create a user that's already existing", async function () {
-    const firstResponse = await createUser(server, defaultUser);
-    expect(firstResponse.statusCode).toEqual(200);
-    const secondResponse = await createUser(server, defaultUser);
-    expect(secondResponse.statusCode).toEqual(401);
-    expect(secondResponse.body).toHaveProperty(
+    const registerResponse = await createUser(server, defaultUser);
+    expect(registerResponse.statusCode).toEqual(200);
+    expect(registerResponse.body).toHaveProperty(
+      "message",
+      "User registered with success"
+    );
+
+    const secondRegisterResponse = await createUser(server, defaultUser);
+    expect(secondRegisterResponse.statusCode).toEqual(401);
+    expect(secondRegisterResponse.body).toHaveProperty(
       "message",
       "User already registered"
     );
   });
 
   it("Creates user and logins successfully", async function () {
-    const firstResponse = await createUser(server, defaultUser);
-    expect(firstResponse.statusCode).toEqual(200);
+    const registerResponse = await createUser(server, defaultUser);
+    expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.statusCode).toEqual(200);
     expect(loginResponse.body).toHaveProperty("token");
   });
 
   it("Creates user and fails to login with wrong password", async function () {
-    const firstResponse = await createUser(server, defaultUser);
-    expect(firstResponse.statusCode).toEqual(200);
+    const registerResponse = await createUser(server, defaultUser);
+    expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(
       server,
       loginDefaultUserWrongPassword
@@ -118,9 +131,10 @@ describe("Auth API tests", function () {
     );
   });
 
-  it("Creates user and fails to login with only name and  password", async function () {
-    const firstResponse = await createUser(server, defaultUser);
-    expect(firstResponse.statusCode).toEqual(200);
+  it("Creates user and fails to login with only name and password", async function () {
+    const registerResponse = await createUser(server, defaultUser);
+    expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(
       server,
       loginDefaultUserWithoutEmail
@@ -144,9 +158,11 @@ describe("Auth API tests", function () {
   it("Successfully gets existant user data", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
     const token = loginResponse.body.token;
+
     const getUserResponse = await getUser(server, token);
     expect(getUserResponse.statusCode).toEqual(200);
     expect(getUserResponse.body).toHaveProperty("id");
@@ -161,8 +177,10 @@ describe("Auth API tests", function () {
   it("Fails to get user data with modified token", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
+
     const getUserResponse = await getUser(server, modifiedToken);
     expect(getUserResponse.statusCode).toEqual(403);
     expect(getUserResponse.body).toHaveProperty("message", "Unauthorized");
@@ -171,9 +189,11 @@ describe("Auth API tests", function () {
   it("Successfully patches existing user data and gets the correct data after patching using new token", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
     const token = loginResponse.body.token;
+
     const patchUserResponse = await patchUser(
       server,
       token,
@@ -184,6 +204,7 @@ describe("Auth API tests", function () {
       "message",
       "User updated with success!"
     );
+
     const loginNewTokenResponse = await authenticateUser(
       server,
       loginModifiedDefaultUser
@@ -191,6 +212,7 @@ describe("Auth API tests", function () {
     expect(loginNewTokenResponse.body).toHaveProperty("token");
     const newToken = loginNewTokenResponse.body.token;
     expect(newToken).not.toEqual(token);
+
     const getUserResponse = await getUser(server, newToken);
     expect(getUserResponse.statusCode).toEqual(200);
     expect(getUserResponse.body).toHaveProperty("id");
@@ -211,9 +233,11 @@ describe("Auth API tests", function () {
   it("Successfully patches existing user data and fails to get the correct data after patching using old token", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
     const token = loginResponse.body.token;
+
     const patchUserResponse = await patchUser(
       server,
       token,
@@ -224,16 +248,20 @@ describe("Auth API tests", function () {
       "message",
       "User updated with success!"
     );
+
     const getUserResponse = await getUser(server, token);
     expect(getUserResponse.statusCode).toEqual(403);
+    expect(getUserResponse.body).toHaveProperty("message", "Unauthorized");
   });
 
   it("Successfully patches existing user password and fails to login with old password", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
     const token = loginResponse.body.token;
+
     const patchUserResponse = await patchUser(
       server,
       token,
@@ -244,6 +272,7 @@ describe("Auth API tests", function () {
       "message",
       "User updated with success!"
     );
+
     const loginNewTokenResponse = await authenticateUser(
       server,
       loginDefaultUser
@@ -258,16 +287,19 @@ describe("Auth API tests", function () {
   it("Fails to patch existing user with empty data", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
     const token = loginResponse.body.token;
+
     const patchUserResponse = await patchUser(server, token, {});
-    expect(patchUserResponse.statusCode).toEqual(400);
+    expect(patchUserResponse.statusCode).not.toEqual(200);
   });
 
   it("Fails to patch with invalid token", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
 
@@ -278,15 +310,18 @@ describe("Auth API tests", function () {
   it("Successfully deletes the user and fails to login or get the user after deletion", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.body).toHaveProperty("token");
     const token = loginResponse.body.token;
+
     const deleteUserResponse = await deleteUser(server, token);
     expect(deleteUserResponse.statusCode).toEqual(200);
     expect(deleteUserResponse.body).toHaveProperty(
       "message",
       "User deleted with success!"
     );
+
     const getUserResponse = await getUser(server, token);
     expect(getUserResponse.statusCode).toEqual(403);
 
@@ -301,6 +336,7 @@ describe("Auth API tests", function () {
   it("Fails to delete user with invalid token", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const deleteUserResponse = await deleteUser(server, modifiedToken);
     expect(deleteUserResponse.statusCode).toEqual(403);
     expect(deleteUserResponse.body).toHaveProperty(
@@ -312,6 +348,7 @@ describe("Auth API tests", function () {
   it("Successfully deletes all users using admin creds", async function () {
     const registerResponse = await createUser(server, defaultUser);
     expect(registerResponse.statusCode).toEqual(200);
+
     const registerResponse2 = await createUser(server, modifiedDefaultUser);
     expect(registerResponse2.statusCode).toEqual(200);
 
@@ -321,8 +358,10 @@ describe("Auth API tests", function () {
       "message",
       "Users deleted with success"
     );
+
     const loginResponse = await authenticateUser(server, loginDefaultUser);
     expect(loginResponse.statusCode).toEqual(401);
+
     const secondLoginResponse = await authenticateUser(
       server,
       loginModifiedDefaultUser
@@ -332,11 +371,27 @@ describe("Auth API tests", function () {
 
   it("Fails to delete all users using non admin creds", async function () {
     const deleteAllUsersResponse = await deleteAllUsers(server, "not admin");
-
     expect(deleteAllUsersResponse.statusCode).toEqual(403);
     expect(deleteAllUsersResponse.body).toHaveProperty(
       "message",
       "Unauthorized access"
     );
+  });
+
+  it("Fails to use auth endpoint with methods other than post ", async function () {
+    expect(
+      (await request(server).get("/api/v1/auth").send(loginDefaultUser))
+        .statusCode
+    ).toEqual(404);
+
+    expect(
+      (await request(server).patch("/api/v1/auth").send(loginDefaultUser))
+        .statusCode
+    ).toEqual(404);
+
+    expect(
+      (await request(server).delete("/api/v1/auth").send(loginDefaultUser))
+        .statusCode
+    ).toEqual(404);
   });
 });

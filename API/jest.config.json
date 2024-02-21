@@ -6,7 +6,7 @@
       {
         "pageTitle": "Auth API Test Report",
         "darkTheme": true,
-        "publicPath": "./html-report",
+        "publicPath": "../API_generated_report",
         "expand": true,
         "inlineSource": true
       }
