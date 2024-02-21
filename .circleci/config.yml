@@ -6,14 +6,13 @@ jobs:
   UI:
     docker:
       - image: cimg/node:21.6.1-browsers
-    working_directory: UI
+    working_directory: SDET-2024
     steps:
       - checkout
       - browser-tools/install-browser-tools:
           chrome-version: "118.0.5993.88"
       - run:
-          name: Install Dependencies
-          command: npm install
+          command: ls
 
 workflows:
   test:
