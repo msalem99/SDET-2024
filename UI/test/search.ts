@@ -37,4 +37,19 @@ describe("Search page Functionality", function () {
       search.verify.ok(name.includes("dress"), `${name} isn't a dress product`);
     });
   });
+
+  it("Checks search results to be relevant (blouse)", async function () {
+    const search = browser.page.search();
+    await search.populateSearchInput("blouse");
+    await search.assertSearchInput("blouse");
+    await search.submitSearch();
+    const products = await search.getProductElements();
+    const productNames = await search.getProductNames(products);
+    productNames.forEach((name) => {
+      search.verify.ok(
+        name.includes("blouse"),
+        `${name} isn't a blouse product`
+      );
+    });
+  });
 });

@@ -2,3 +2,5 @@ node_modules
 logs
 tests_output
 html-report
+UI_generated_report/test
+UI_generated_report/minimal_report.json

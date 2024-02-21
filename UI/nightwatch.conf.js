@@ -37,6 +37,8 @@ module.exports = {
     enabled: true,
   },
 
+  output_folder: "../UI_generated_report",
+
   skip_testcases_on_fail: false,
 
   test_settings: {

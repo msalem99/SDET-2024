@@ -22,6 +22,11 @@ describe("Contact Page Functionality", function () {
     done();
   });
 
+  it("Asserts the contact page title", async function () {
+    const contact = browser.page.contact();
+    await contact.assertTitle();
+  });
+
   it("Asserts the visibility of the form elements", async function () {
     const contact = browser.page.contact();
     await contact.assertTitle().assertForm();
@@ -116,11 +121,11 @@ describe("Contact Page Functionality", function () {
     }
   });
 
-  it("Fails to Submit form with valid Data (Missing email field)", async function () {
+  it("Fails to submit the form with empty email field data", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
       subjectHeading: "Webmaster",
-      email: validEmail,
+      email: "",
       orderReference: shortText,
       attachFile: imagePath,
       message: shortText,
@@ -136,10 +141,10 @@ describe("Contact Page Functionality", function () {
     await contact.assertFailure();
   });
 
-  it("Fails to Submit form with valid Data (Missing header field)", async function () {
+  it("Fails to Submit form with empty subject header", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
-      subjectHeading: "Webmaster",
+      subjectHeading: "",
       email: validEmail,
       orderReference: shortText,
       attachFile: imagePath,
@@ -157,14 +162,14 @@ describe("Contact Page Functionality", function () {
     await contact.assertFailure();
   });
 
-  it("Fails to Submit form with valid Data (Missing message field)", async function () {
+  it("Fails to Submit form with empty message field", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
       subjectHeading: "Webmaster",
       email: validEmail,
       orderReference: shortText,
       attachFile: imagePath,
-      message: shortText,
+      message: "",
     };
     await contact.chooseSubjectHeading(contactUsFormData.subjectHeading);
     await contact.assertSubjectHeading(contactUsFormData.subjectHeading);
@@ -177,7 +182,7 @@ describe("Contact Page Functionality", function () {
     await contact.assertFailure();
   });
 
-  it("Fails to submit form with extremely long messages (Mandatory fields)", async function () {
+  it("Fails to submit form with a lengthy message (5k characters)", async function () {
     const contact = browser.page.contact();
 
     const contactUsFormData: ContactUsForm = {
@@ -202,7 +207,7 @@ describe("Contact Page Functionality", function () {
     await contact.assertFailure();
   });
 
-  it("Fails to submit form with extremely long reference number (Mandatory fields)", async function () {
+  it("Fails to submit form with lengthy order reference  (5k Characters)", async function () {
     const contact = browser.page.contact();
 
     const contactUsFormData: ContactUsForm = {
@@ -219,6 +224,9 @@ describe("Contact Page Functionality", function () {
     await contact.populateEmail(contactUsFormData.email);
     await contact.assertEmail(contactUsFormData.email);
 
+    await contact.populateOrderReference(contactUsFormData.orderReference);
+    await contact.assertOrderReference(contactUsFormData.orderReference);
+
     await contact.populateMessage(contactUsFormData.message);
     await contact.assertMessage(contactUsFormData.message);
 
@@ -227,7 +235,13 @@ describe("Contact Page Functionality", function () {
     await contact.assertFailure();
   });
 
-  it("Fails to Submit form with valid Data (Missing message and heading field)", async function () {
+  it("Fails to Submit form with no data", async function () {
+    const contact = browser.page.contact();
+    await contact.submitContactForm();
+    await contact.assertFailure();
+  });
+
+  it("Fails to Submit form with empty message and empty subject header", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
       subjectHeading: "Webmaster",
@@ -245,10 +259,10 @@ describe("Contact Page Functionality", function () {
     await contact.assertFailure();
   });
 
-  it("Shows correct error messages on failure to submit (Missing subject header)", async function () {
+  it("Shows correct error messages on failure to submit (empty subject header)", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
-      subjectHeading: "Webmaster",
+      subjectHeading: "Customer Service",
       email: validEmail,
       orderReference: shortText,
       attachFile: imagePath,
@@ -264,16 +278,16 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to missing subject header show
+    // Check that an error related to empty subject header is displayed
     var errorsToLookFor = ["subject"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
   });
 
-  it("Shows correct error messages on failure to submit (Missing email)", async function () {
+  it("Shows correct error messages on failure to submit (empty email)", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
-      subjectHeading: "Webmaster",
+      subjectHeading: "Customer Service",
       email: validEmail,
       orderReference: shortText,
       attachFile: imagePath,
@@ -289,13 +303,13 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to missing email show
+    // Check that an error related to empty email is displayed
     var errorsToLookFor = ["email"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
   });
 
-  it("Shows correct error messages on failure to submit (Missing message)", async function () {
+  it("Shows correct error messages on failure to submit (empty message)", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
       subjectHeading: "Webmaster",
@@ -314,13 +328,13 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to missing message show
+    // Check that an error related to empty message is displayed
     var errorsToLookFor = ["message"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
   });
 
-  it("Shows correct error messages on failure to submit (Missing message and email)", async function () {
+  it("Shows correct error messages on failure to submit (empty message and email)", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
       subjectHeading: "Webmaster",
@@ -336,13 +350,13 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to missing message and email show
+    // Check that errors related to empty message and email are displayed
     var errorsToLookFor = ["message", "email"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
   });
 
-  it("Shows correct error messages on failure to submit (Missing message and subject)", async function () {
+  it("Shows correct error messages on failure to submit (empty message and subject)", async function () {
     const contact = browser.page.contact();
     const contactUsFormData: ContactUsForm = {
       subjectHeading: "Webmaster",
@@ -358,8 +372,31 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to missing message and subject heading show
+    // Check that errors related to empty message and subject header are displayed
     var errorsToLookFor = ["message", "subject"];
+    const errors = await contact.getErrors();
+    await contact.assertNumberOfErrors(errorsToLookFor, errors);
+  });
+
+  it("Shows correct error messages on failure to submit (empty email and subject)", async function () {
+    const contact = browser.page.contact();
+    const contactUsFormData: ContactUsForm = {
+      subjectHeading: "Webmaster",
+      email: validEmail,
+      orderReference: shortText,
+      attachFile: imagePath,
+      message: shortText,
+    };
+
+    await contact.populateMessage(contactUsFormData.message);
+    await contact.assertMessage(contactUsFormData.message);
+
+    await contact.submitContactForm();
+
+    await contact.assertFailure();
+
+    // Check that errors related to empty message and subject header are displayed
+    var errorsToLookFor = ["email", "subject"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
   });
