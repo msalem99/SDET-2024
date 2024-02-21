@@ -1,0 +1,2 @@
+*.html linguist-detectable=false
+UI_generated_report/** linguist-vendored
