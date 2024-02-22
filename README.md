@@ -1,5 +1,7 @@
 # SDET-2024
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/msalem99/SDET-2024/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/msalem99/SDET-2024/tree/main)
+
 The Project is split into 2 parts:
 
 #### UI: A [website](http://automationpractice.multiformis.com/) Contact page and search page were tested using
