@@ -395,7 +395,7 @@ describe("Contact Page Functionality", function () {
 
     await contact.assertFailure();
 
-    // Check that errors related to empty message and subject header are displayed
+    // Check that errors related to empty email and subject header are displayed
     var errorsToLookFor = ["email", "subject"];
     const errors = await contact.getErrors();
     await contact.assertNumberOfErrors(errorsToLookFor, errors);
